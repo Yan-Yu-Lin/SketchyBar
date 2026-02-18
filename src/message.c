@@ -438,6 +438,7 @@ static bool handle_domain_bar(FILE *rsp, struct token domain, char *message) {
     respond(rsp, "[!] Bar: Invalid property 'clip'\n");
   } else if (token_equals(command, PROPERTY_HEIGHT)) {
     struct token token = get_token(&message);
+    g_bar_manager.bar_height_target = token_to_int(token);
     ANIMATE(bar_manager_set_bar_height,
             &g_bar_manager,
             g_bar_manager.background.bounds.size.height,

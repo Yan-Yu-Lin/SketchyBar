@@ -37,6 +37,7 @@ struct bar_manager {
   uint32_t notch_offset;
   uint32_t notch_display_height;
   uint32_t num_rows;
+  uint32_t bar_height_target;
   uint32_t active_adid;
   uint32_t window_level;
 

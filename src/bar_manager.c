@@ -40,6 +40,7 @@ void bar_manager_init(struct bar_manager* bar_manager) {
   bar_manager->notch_offset = 0;
   bar_manager->notch_display_height = 0;
   bar_manager->num_rows = 1;
+  bar_manager->bar_height_target = 0;
   bar_manager->active_adid = display_active_display_adid();
   bar_manager->might_need_clipping = false;
 
@@ -50,6 +51,7 @@ void bar_manager_init(struct bar_manager* bar_manager) {
   image_init(&bar_manager->current_artwork);
   background_init(&bar_manager->background);
   bar_manager->background.bounds.size.height = 25;
+  bar_manager->bar_height_target = 25;
   bar_manager->background.overrides_height = true;
   bar_manager->background.padding_left = 20;
   bar_manager->background.padding_right = 20;

@@ -229,7 +229,7 @@ static void bar_calculate_bounds_top_bottom(struct bar* bar) {
   bool is_builtin = CGDisplayIsBuiltin(bar->did);
   uint32_t notch_width = is_builtin ? g_bar_manager.notch_width : 0;
   uint32_t num_rows = g_bar_manager.num_rows;
-  uint32_t bar_height = bar->window.frame.size.height;
+  uint32_t bar_height = g_bar_manager.background.bounds.size.height;
   uint32_t row_height = num_rows > 1 ? bar_height / num_rows : bar_height;
 
   // Per-row x-position cursors
@@ -524,15 +524,19 @@ static CGRect bar_get_frame(struct bar *bar) {
     }
 
 
+    uint32_t frame_height = g_bar_manager.bar_height_target > 0
+                            ? g_bar_manager.bar_height_target
+                            : g_bar_manager.background.bounds.size.height;
+
     if (notch_display_height > 0 && g_bar_manager.num_rows <= 1) {
       return (CGRect) {{origin.x, origin.y},
                         {bounds.size.width,
-                        g_bar_manager.notch_display_height}};
+                        max(g_bar_manager.notch_display_height, frame_height)}};
     }
-    
+
     return (CGRect) {{origin.x, origin.y},
                       {bounds.size.width,
-                      g_bar_manager.background.bounds.size.height}};
+                      frame_height}};
   }
 }
 
