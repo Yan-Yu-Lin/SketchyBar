@@ -36,6 +36,7 @@ struct bar_manager {
   uint32_t notch_width;
   uint32_t notch_offset;
   uint32_t notch_display_height;
+  uint32_t num_rows;
   uint32_t active_adid;
   uint32_t window_level;
 
@@ -83,6 +84,7 @@ bool bar_manager_set_show_in_fullscreen(struct bar_manager* bar_manager, bool sh
 bool bar_manager_set_notch_width(struct bar_manager* bar_manager, uint32_t width);
 bool bar_manager_set_notch_offset(struct bar_manager* bar_manager, uint32_t offset);
 bool bar_manager_set_notch_display_height(struct bar_manager* bar_manager, uint32_t offset);
+bool bar_manager_set_num_rows(struct bar_manager* bar_manager, uint32_t num_rows);
 void bar_manager_sort(struct bar_manager* bar_manager, struct bar_item** ordering, uint32_t count);
 
 struct bar_item* bar_manager_get_item_by_point(struct bar_manager* bar_manager, CGPoint point, struct window** window_out);
@@ -93,6 +95,7 @@ struct popup* bar_manager_get_popup_by_wid(struct bar_manager* bar_manager, uint
 struct bar* bar_manager_get_bar_by_wid(struct bar_manager* bar_manager, uint32_t wid);
 int bar_manager_get_item_index_for_name(struct bar_manager* bar_manager, char* name);
 uint32_t bar_manager_length_for_bar_side(struct bar_manager* bar_manager, struct bar* bar, char side);
+uint32_t bar_manager_length_for_bar_side_row(struct bar_manager* bar_manager, struct bar* bar, char side, uint32_t row);
 bool bar_manager_mouse_over_any_popup(struct bar_manager* bar_manager);
 bool bar_manager_mouse_over_any_bar(struct bar_manager* bar_manager);
 

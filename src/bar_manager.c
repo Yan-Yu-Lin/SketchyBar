@@ -39,6 +39,7 @@ void bar_manager_init(struct bar_manager* bar_manager) {
   bar_manager->notch_width = 200;
   bar_manager->notch_offset = 0;
   bar_manager->notch_display_height = 0;
+  bar_manager->num_rows = 1;
   bar_manager->active_adid = display_active_display_adid();
   bar_manager->might_need_clipping = false;
 
@@ -253,6 +254,15 @@ bool bar_manager_set_notch_display_height(struct bar_manager* bar_manager, uint3
   return true;
 }
 
+bool bar_manager_set_num_rows(struct bar_manager* bar_manager, uint32_t num_rows) {
+  if (num_rows < 1) num_rows = 1;
+  if (num_rows > MAX_ROWS) num_rows = MAX_ROWS;
+  if (bar_manager->num_rows == num_rows) return false;
+  bar_manager->num_rows = num_rows;
+  bar_manager->bar_needs_resize = true;
+  return true;
+}
+
 bool bar_manager_set_font_smoothing(struct bar_manager* bar_manager, bool smoothing) {
   if (bar_manager->font_smoothing == smoothing) return false;
   bar_manager->font_smoothing = smoothing;
@@ -327,6 +337,28 @@ uint32_t bar_manager_length_for_bar_side(struct bar_manager* bar_manager, struct
   for (int i = 0; i < bar_manager->bar_item_count; i++) {
     struct bar_item* bar_item = bar_manager->bar_items[i];
     if (bar_item->position == side
+        && bar_item->type != BAR_COMPONENT_GROUP
+        && bar_draws_item(bar, bar_item)        ) {
+      int item_length = (bar_manager->position == POSITION_LEFT
+                         || bar_manager->position == POSITION_RIGHT)
+                        ? bar_item_get_height(bar_item)
+                        : bar_item_get_length(bar_item, false);
+
+      total_length += item_length + (bar_item->has_const_width
+                                     ? 0
+                                     : bar_item->background.padding_left
+                                       + bar_item->background.padding_right);
+    }
+  }
+  return total_length;
+}
+
+uint32_t bar_manager_length_for_bar_side_row(struct bar_manager* bar_manager, struct bar* bar, char side, uint32_t row) {
+  uint32_t total_length = 0;
+  for (int i = 0; i < bar_manager->bar_item_count; i++) {
+    struct bar_item* bar_item = bar_manager->bar_items[i];
+    if (bar_item->position == side
+        && bar_item->row == row
         && bar_item->type != BAR_COMPONENT_GROUP
         && bar_draws_item(bar, bar_item)        ) {
       int item_length = (bar_manager->position == POSITION_LEFT
@@ -1107,7 +1139,8 @@ void bar_manager_serialize(struct bar_manager* bar_manager, FILE* rsp) {
                "%s\"font_smoothing\": \"%s\",\n"
                "%s\"show_in_fullscreen\": \"%s\",\n"
                "%s\"blur_radius\": %u,\n"
-               "%s\"margin\": %d,\n",
+               "%s\"margin\": %d,\n"
+               "%s\"rows\": %u,\n",
                indent, bar_manager->position == POSITION_BOTTOM
                                               ? "bottom" : "top",
                indent, format_bool(bar_manager->topmost),
@@ -1117,7 +1150,8 @@ void bar_manager_serialize(struct bar_manager* bar_manager, FILE* rsp) {
                indent, format_bool(bar_manager->font_smoothing),
                indent, format_bool(bar_manager->show_in_fullscreen),
                indent, bar_manager->blur_radius,
-               indent, bar_manager->margin         );
+               indent, bar_manager->margin,
+               indent, bar_manager->num_rows      );
 
   background_serialize(&bar_manager->background, indent, rsp, false);
 

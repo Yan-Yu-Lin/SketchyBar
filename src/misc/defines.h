@@ -93,6 +93,7 @@
 #define PROPERTY_ICON                          "icon"
 #define PROPERTY_XOFFSET                       "x_offset"
 #define PROPERTY_YOFFSET                       "y_offset"
+#define PROPERTY_ROW                           "row"
 #define PROPERTY_WIDTH                         "width"
 #define PROPERTY_LABEL                         "label"
 #define PROPERTY_CACHE_SCRIPTS                 "cache_scripts"
@@ -117,7 +118,10 @@
 #define PROPERTY_NOTCH_WIDTH                   "notch_width"
 #define PROPERTY_NOTCH_OFFSET                  "notch_offset"
 #define PROPERTY_NOTCH_DISPLAY_HEIGHT          "notch_display_height"
+#define PROPERTY_NUM_ROWS                      "rows"
 #define PROPERTY_HORIZONTAL                    "horizontal"
+
+#define MAX_ROWS 8
 
 #define DOMAIN_SUBSCRIBE                       "--subscribe"
 #define COMMAND_SUBSCRIBE_FRONT_APP_SWITCHED   "front_app_switched"

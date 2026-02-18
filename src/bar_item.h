@@ -56,6 +56,7 @@ struct bar_item {
   // The position in the bar: l,r,c
   char position;
   int y_offset;
+  uint32_t row;
 
   // Background
   struct background background;

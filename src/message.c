@@ -442,6 +442,10 @@ static bool handle_domain_bar(FILE *rsp, struct token domain, char *message) {
             &g_bar_manager,
             g_bar_manager.background.bounds.size.height,
             token_to_int(token)                         );
+  } else if (token_equals(command, PROPERTY_NUM_ROWS)) {
+    struct token token = get_token(&message);
+    needs_refresh = bar_manager_set_num_rows(&g_bar_manager,
+                                              token_to_uint32t(token));
   } else if (token_equals(command, PROPERTY_SHOW_IN_FULLSCREEN)) {
       struct token token = get_token(&message);
 

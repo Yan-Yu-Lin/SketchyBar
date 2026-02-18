@@ -40,7 +40,8 @@ void bar_item_init(struct bar_item* bar_item, struct bar_item* default_item) {
   bar_item->custom_width = 0;
 
   bar_item->y_offset = 0;
-  
+  bar_item->row = 0;
+
   bar_item->has_alias = false;
   bar_item->has_graph = false;
 
@@ -347,6 +348,13 @@ static void bar_item_set_click_script(struct bar_item* bar_item, char* script) {
 static bool bar_item_set_yoffset(struct bar_item* bar_item, int offset) {
   if (bar_item->y_offset == offset) return false;
   bar_item->y_offset = offset;
+  return true;
+}
+
+static bool bar_item_set_row(struct bar_item* bar_item, uint32_t row) {
+  if (row >= MAX_ROWS) row = MAX_ROWS - 1;
+  if (bar_item->row == row) return false;
+  bar_item->row = row;
   return true;
 }
 
@@ -902,6 +910,7 @@ void bar_item_serialize(struct bar_item* bar_item, FILE* rsp) {
                "\t\t\"associated_display_mask\": %u,\n"
                "\t\t\"ignore_association\": \"%s\",\n"
                "\t\t\"y_offset\": %d,\n"
+               "\t\t\"row\": %u,\n"
                "\t\t\"padding_left\": %d,\n"
                "\t\t\"padding_right\": %d,\n"
                "\t\t\"scroll_texts\": \"%s\",\n"
@@ -915,6 +924,7 @@ void bar_item_serialize(struct bar_item* bar_item, FILE* rsp) {
                bar_item->associated_display,
                format_bool(bar_item->ignore_association),
                bar_item->y_offset,
+               bar_item->row,
                bar_item->background.padding_left,
                bar_item->background.padding_right,
                format_bool(bar_item->scroll_texts),
@@ -1196,6 +1206,10 @@ void bar_item_parse_set_message(struct bar_item* bar_item, char* message, FILE* 
             bar_item,
             bar_item->y_offset,
             token_to_int(token)  );
+
+  } else if (token_equals(property, PROPERTY_ROW)) {
+    struct token token = get_token(&message);
+    needs_refresh = bar_item_set_row(bar_item, token_to_uint32t(token));
 
   } else if (token_equals(property, PROPERTY_PADDING_LEFT)) {
     struct token token = get_token(&message);

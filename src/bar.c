@@ -228,29 +228,35 @@ void bar_draw(struct bar* bar, bool forced, bool threaded) {
 static void bar_calculate_bounds_top_bottom(struct bar* bar) {
   bool is_builtin = CGDisplayIsBuiltin(bar->did);
   uint32_t notch_width = is_builtin ? g_bar_manager.notch_width : 0;
+  uint32_t num_rows = g_bar_manager.num_rows;
+  uint32_t bar_height = bar->window.frame.size.height;
+  uint32_t row_height = num_rows > 1 ? bar_height / num_rows : bar_height;
 
-  uint32_t center_length = bar_manager_length_for_bar_side(&g_bar_manager,
-                                                           bar,
-                                                           POSITION_CENTER);
+  // Per-row x-position cursors
+  uint32_t bar_left_x[MAX_ROWS];
+  uint32_t bar_right_x[MAX_ROWS];
+  uint32_t bar_center_x[MAX_ROWS];
+  uint32_t bar_center_right_x[MAX_ROWS];
+  uint32_t bar_center_left_x[MAX_ROWS];
 
-  uint32_t bar_left_first_item_x = max(g_bar_manager.background.padding_left,
-                                       0                                     );
+  for (uint32_t r = 0; r < num_rows; r++) {
+    uint32_t center_length = bar_manager_length_for_bar_side_row(
+                               &g_bar_manager, bar, POSITION_CENTER, r);
 
-  uint32_t bar_right_first_item_x = bar->window.frame.size.width
-                                   -max(g_bar_manager.background.padding_right,
-                                          0                                  );
+    bar_left_x[r] = max(g_bar_manager.background.padding_left, 0);
 
-  uint32_t bar_center_first_item_x = (bar->window.frame.size.width
-                                      - center_length) / 2;
+    bar_right_x[r] = bar->window.frame.size.width
+                     - max(g_bar_manager.background.padding_right, 0);
 
-  uint32_t bar_center_right_first_item_x = (bar->window.frame.size.width
-                                            + notch_width) / 2;
+    bar_center_x[r] = (bar->window.frame.size.width - center_length) / 2;
 
-  uint32_t bar_center_left_first_item_x = (bar->window.frame.size.width
-                                           - notch_width) / 2;
+    // Notch avoidance only on row 0 of built-in displays
+    uint32_t row_notch = (r == 0) ? notch_width : 0;
+    bar_center_right_x[r] = (bar->window.frame.size.width + row_notch) / 2;
+    bar_center_left_x[r]  = (bar->window.frame.size.width - row_notch) / 2;
+  }
 
   uint32_t* next_position = NULL;
-  uint32_t y = bar->window.frame.size.height / 2;
 
   for (int i = 0; i < g_bar_manager.bar_item_count; i++) {
     struct bar_item* bar_item = g_bar_manager.bar_items[i];
@@ -259,21 +265,25 @@ static void bar_calculate_bounds_top_bottom(struct bar* bar) {
         || bar_item->type == BAR_COMPONENT_GROUP
         || bar_item->position == POSITION_POPUP ) {
       continue;
-    } 
+    }
 
+    uint32_t r = bar_item->row;
+    if (r >= num_rows) r = 0;
+
+    uint32_t y = row_height * r + row_height / 2;
     uint32_t bar_item_display_length = bar_item_get_length(bar_item, true);
     bool rtl = false;
 
     if (bar_item->position == POSITION_LEFT)
-      next_position = &bar_left_first_item_x;
+      next_position = &bar_left_x[r];
     else if (bar_item->position == POSITION_CENTER)
-      next_position = &bar_center_first_item_x;
+      next_position = &bar_center_x[r];
     else if (bar_item->position == POSITION_RIGHT)
-      next_position = &bar_right_first_item_x, rtl = true;
+      next_position = &bar_right_x[r], rtl = true;
     else if (bar_item->position == POSITION_CENTER_RIGHT)
-      next_position = &bar_center_right_first_item_x;
+      next_position = &bar_center_right_x[r];
     else if (bar_item->position == POSITION_CENTER_LEFT)
-      next_position = &bar_center_left_first_item_x, rtl = true;
+      next_position = &bar_center_left_x[r], rtl = true;
     else continue;
 
     if (bar_item->position == POSITION_RIGHT
@@ -292,18 +302,19 @@ static void bar_calculate_bounds_top_bottom(struct bar* bar) {
 
     CGPoint shadow_offsets = bar_item_calculate_shadow_offsets(bar_item);
     uint32_t bar_item_length = bar_item_calculate_bounds(bar_item,
-                                 bar->window.frame.size.height
+                                 row_height
                                  - (g_bar_manager.background.border_width + 1),
                                  max(shadow_offsets.x, 0),
                                  y                                           );
 
     CGRect frame = {{bar->window.origin.x + *next_position
                     - max(shadow_offsets.x, 0),
-                     bar->window.origin.y                 },
+                     bar->window.origin.y
+                     + row_height * r          },
                     {bar_item_display_length
                       + shadow_offsets.x
                       + shadow_offsets.y,
-                     bar->window.frame.size.height}         };
+                     row_height}                };
 
     window_set_frame(bar_item_get_window(bar_item, bar->adid), frame);
 
@@ -334,6 +345,10 @@ static void bar_calculate_bounds_top_bottom(struct bar* bar) {
         || !bar_draws_item(bar, bar_item)) {
       continue;
     }
+
+    uint32_t r = bar_item->row;
+    if (r >= num_rows) r = 0;
+    uint32_t y = row_height * r + row_height / 2;
 
     group_calculate_bounds(bar_item->group, bar, y);
     window_set_frame(bar_item_get_window(bar_item->group->members[0],
@@ -509,7 +524,7 @@ static CGRect bar_get_frame(struct bar *bar) {
     }
 
 
-    if (notch_display_height > 0) {
+    if (notch_display_height > 0 && g_bar_manager.num_rows <= 1) {
       return (CGRect) {{origin.x, origin.y},
                         {bounds.size.width,
                         g_bar_manager.notch_display_height}};
