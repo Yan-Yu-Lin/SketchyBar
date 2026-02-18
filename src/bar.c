@@ -270,7 +270,7 @@ static void bar_calculate_bounds_top_bottom(struct bar* bar) {
     uint32_t r = bar_item->row;
     if (r >= num_rows) r = 0;
 
-    uint32_t y = row_height * r + row_height / 2;
+    uint32_t y = row_height / 2;
     uint32_t bar_item_display_length = bar_item_get_length(bar_item, true);
     bool rtl = false;
 
@@ -348,7 +348,7 @@ static void bar_calculate_bounds_top_bottom(struct bar* bar) {
 
     uint32_t r = bar_item->row;
     if (r >= num_rows) r = 0;
-    uint32_t y = row_height * r + row_height / 2;
+    uint32_t y = row_height / 2;
 
     group_calculate_bounds(bar_item->group, bar, y);
     window_set_frame(bar_item_get_window(bar_item->group->members[0],
